@@ -1,14 +1,14 @@
 # Material Addons
 
 
-[![Build Status](https://travis-ci.com/footageone/angular-material-addons.svg?branch=master)](https://travis-ci.com/footageone/angular-material-addons)
-[![codecov.io](https://codecov.io/github/footageone/angular-material-addons/coverage.svg?branch=master)](https://codecov.io/github/footageone/angular-material-addons?branch=master)
+[![Build Status](https://travis-ci.com/duxor/angular-material-addons.svg?branch=master)](https://travis-ci.com/duxor/angular-material-addons)
+[![codecov.io](https://codecov.io/github/duxor/angular-material-addons/coverage.svg?branch=master)](https://codecov.io/github/duxor/angular-material-addons?branch=master)
 
 ## Packages
 
 This project is a mono repo and hosts multiple packages:
 
-| Package                               | Version                              | Docs                                                                                                           
-|---------------------------------------|-----------------------|--------------------|
-| mat-right-sheet                             | [![mat-right-sheet](https://img.shields.io/npm/v/mat-right-sheet.svg)](https://www.npmjs.com/package/mat-right-sheet)      | [mat-right-sheet](https://github.com/footageone/angular-material-addons/tree/master/projects/right-sheet)                                        |
+| Package                               | Version                              | Docs                                                                                                 
+|---------------------------------------|-----------------------|------------------------------------------------------------------------------------------------------|
+| mat-right-sheet                             | [![mat-right-sheet](https://img.shields.io/npm/v/@duxor/mat-right-sheet.svg)](https://www.npmjs.com/package/@duxor/mat-right-sheet)      | [mat-right-sheet](https://github.com/duxor/angular-material-addons/tree/feat/duxor-latest/projects/right-sheet) |
 ---
