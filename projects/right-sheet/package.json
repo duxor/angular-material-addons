@@ -1,6 +1,6 @@
 {
   "name": "@duxor/mat-right-sheet",
-  "version": "17.0.1",
+  "version": "20.0.0",
   "publishConfig": {
     "access": "public"
   },
@@ -17,10 +17,10 @@
     "web components"
   ],
   "peerDependencies": {
-    "@angular/common": "^17.0.0",
-    "@angular/core": "^17.0.0",
-    "@angular/cdk": "^17.0.0",
-    "@angular/material": "^17.0.0"
+    "@angular/common": ">=20.0.0 <21.0.0",
+    "@angular/core": ">=20.0.0 <21.0.0",
+    "@angular/cdk": ">=20.0.0 <21.0.0",
+    "@angular/material": ">=20.0.0 <21.0.0"
   },
   "homepage": "https://github.com/duxor/angular-material-addons",
   "license": "MIT",
