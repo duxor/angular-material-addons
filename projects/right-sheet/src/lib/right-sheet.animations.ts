@@ -6,8 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 import { animate, AnimationTriggerMetadata, state, style, transition, trigger, } from '@angular/animations';
-import { AnimationCurves, AnimationDurations } from '@angular/material/core';
-
 /** Animations used by the Material bottom sheet. */
 export const matRightSheetAnimations: {
   readonly rightSheetState: AnimationTriggerMetadata;
@@ -18,19 +16,11 @@ export const matRightSheetAnimations: {
     state('visible', style({transform: 'translateX(0%)'})),
     transition(
       'visible => void, visible => hidden',
-      animate(
-        `${AnimationDurations.COMPLEX} ${
-          AnimationCurves.ACCELERATION_CURVE
-        }`,
-      ),
+      animate('375ms cubic-bezier(0.4, 0, 1, 1)'),
     ),
     transition(
       'void => visible',
-      animate(
-        `${AnimationDurations.EXITING} ${
-          AnimationCurves.DECELERATION_CURVE
-        }`,
-      ),
+      animate('225ms cubic-bezier(0, 0, 0.2, 1)'),
     ),
   ]),
 };

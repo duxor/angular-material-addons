@@ -1,6 +1,6 @@
 {
   "name": "mat-right-sheet",
-  "version": "20.0.0",
+  "version": "21.0.0",
   "keywords": [
     "angular",
     "ng",
@@ -14,10 +14,10 @@
     "web components"
   ],
   "peerDependencies": {
-    "@angular/common": ">=20.0.0 <21.0.0",
-    "@angular/core": ">=20.0.0 <21.0.0",
-    "@angular/cdk": ">=20.0.0 <21.0.0",
-    "@angular/material": ">=20.0.0 <21.0.0"
+    "@angular/common": ">=21.0.0 <22.0.0",
+    "@angular/core": ">=21.0.0 <22.0.0",
+    "@angular/cdk": ">=21.0.0 <22.0.0",
+    "@angular/material": ">=21.0.0 <22.0.0"
   },
   "homepage": "https://github.com/footageone/angular-material-addons",
   "license": "MIT",
