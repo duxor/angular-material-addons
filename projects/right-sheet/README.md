@@ -7,7 +7,7 @@ Run `npm i @insightfulio/mat-right-sheet` and add `MatRightSheetModule` to your 
 Include the theming in your stylesheets. For example:
 
 ```SCSS
-@use "mat-right-sheet/right-sheet-theme" as mrs;
+@use "@insightfulio/mat-right-sheet/right-sheet-theme" as mrs;
 
 @include mrs.mat-right-sheet-theme($theme);
 
