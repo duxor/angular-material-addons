@@ -1,5 +1,5 @@
 {
-  "name": "mat-right-sheet",
+  "name": "@insightfulio/mat-right-sheet",
   "version": "21.0.0",
   "keywords": [
     "angular",
@@ -23,7 +23,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/footageone/angular-material-addons.git"
+    "url": "https://github.com/duxor/angular-material-addons.git"
   },
   "dependencies": {
     "tslib": "^2.0.0"

@@ -798,7 +798,7 @@ describe('MatRightSheet', () => {
         });
 
         viewContainerFixture.detectChanges();
-        flushMicrotasks();
+        flush();
 
         // tslint:disable-next-line: no-non-null-assertion
         expect(document.activeElement!.tagName).toBe(
