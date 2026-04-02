@@ -10,5 +10,5 @@ This project is a mono repo and hosts multiple packages:
 
 | Package                               | Version                              | Docs                                                                                                           
 |---------------------------------------|-----------------------|--------------------|
-| mat-right-sheet                             | [![mat-right-sheet](https://img.shields.io/npm/v/mat-right-sheet.svg)](https://www.npmjs.com/package/mat-right-sheet)      | [mat-right-sheet](https://github.com/duxor/angular-material-addons/tree/master/projects/right-sheet)                                        |
+| @insightfulio/mat-right-sheet                             | [![@insightfulio/mat-right-sheet](https://img.shields.io/npm/v/@insightfulio/mat-right-sheet.svg)](https://www.npmjs.com/package/@insightfulio/mat-right-sheet)      | [@insightfulio/mat-right-sheet](https://github.com/duxor/angular-material-addons/tree/master/projects/right-sheet)                                        |
 ---
