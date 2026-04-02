@@ -797,6 +797,7 @@ describe('MatRightSheet', () => {
           autoFocus: true,
         });
 
+        flushMicrotasks();
         viewContainerFixture.detectChanges();
         flushMicrotasks();
 
