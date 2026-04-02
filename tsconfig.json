@@ -19,10 +19,10 @@
       "dom"
     ],
     "paths": {
-      "right-sheet": [
+      "@insightfulio/mat-right-sheet": [
         "dist/right-sheet"
       ],
-      "right-sheet/*": [
+      "@insightfulio/mat-right-sheet/*": [
         "dist/right-sheet/*"
       ]
     },
