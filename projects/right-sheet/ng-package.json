@@ -3,5 +3,12 @@
   "dest": "../../dist/right-sheet",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": [
+    {
+      "input": "src/lib",
+      "glob": "_right-sheet-theme.scss",
+      "output": "/"
+    }
+  ]
 }

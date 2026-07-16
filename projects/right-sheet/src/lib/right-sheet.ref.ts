@@ -83,7 +83,7 @@ export class MatRightSheetRef<T = any, R = any> {
       _overlayRef
         .keydownEvents()
         .pipe(filter((event) => event.keyCode === ESCAPE)),
-    ).subscribe(() => {
+    ).subscribe((event) => {
       if (!this.disableClose &&
         (event.type !== 'keydown' || !hasModifierKey(event as KeyboardEvent))) {
         event.preventDefault();
