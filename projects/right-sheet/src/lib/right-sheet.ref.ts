@@ -52,7 +52,7 @@ export class MatRightSheetRef<T = any, R = any> {
       .pipe(
         filter(
           (event) =>
-            event.phaseName === 'done' &&
+            event.phase === 'done' &&
             event.toState === 'visible',
         ),
         take(1),
@@ -67,7 +67,7 @@ export class MatRightSheetRef<T = any, R = any> {
       .pipe(
         filter(
           (event) =>
-            event.phaseName === 'done' &&
+            event.phase === 'done' &&
             event.toState === 'hidden',
         ),
         take(1),
@@ -101,7 +101,7 @@ export class MatRightSheetRef<T = any, R = any> {
       // Transition the backdrop in parallel to the bottom sheet.
       this.containerInstance._animationStateChanged
         .pipe(
-          filter((event) => event.phaseName === 'start'),
+          filter((event) => event.phase === 'start'),
           take(1),
         )
         .subscribe(() => this._overlayRef.detachBackdrop());

@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import { AnimationEvent } from '@angular/animations';
 import { FocusTrap, FocusTrapFactory, InteractivityChecker } from '@angular/cdk/a11y';
 import { coerceArray } from '@angular/cdk/coercion';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { BreakpointObserver, Breakpoints, MediaMatcher } from '@angular/cdk/layout';
 import { _getFocusedElementPierceShadowDom } from '@angular/cdk/platform';
 import { BasePortalOutlet, CdkPortalOutlet, ComponentPortal, TemplatePortal, } from '@angular/cdk/portal';
 import { DOCUMENT } from '@angular/common';
 import {
+  ANIMATION_MODULE_TYPE,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -22,15 +22,47 @@ import {
   EmbeddedViewRef,
   EventEmitter,
   Inject,
+  inject,
   NgZone,
   OnDestroy,
   Optional,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
+import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { Subscription } from 'rxjs';
-import { matRightSheetAnimations } from './right-sheet.animations';
 import { MatRightSheetConfig } from './right-sheet.config';
+
+/** Name of the CSS keyframes that slide the right sheet into view. */
+const ENTER_ANIMATION = '_mat-right-sheet-enter';
+
+/** Name of the CSS keyframes that slide the right sheet out of view. */
+const EXIT_ANIMATION = '_mat-right-sheet-exit';
+
+/**
+ * Event emitted by the right sheet container when its enter or exit animation
+ * starts or finishes.
+ * @docs-private
+ */
+export interface MatRightSheetAnimationEvent {
+  toState: 'visible' | 'hidden';
+  phase: 'start' | 'done';
+}
+
+/**
+ * Whether animations should be skipped, following the same rules as Angular Material:
+ * disabled through `MATERIAL_ANIMATIONS`, `NoopAnimationsModule` / `provideNoopAnimations()`,
+ * or the user preferring reduced motion.
+ */
+function _rightSheetAnimationsDisabled(): boolean {
+  if (
+    inject(MATERIAL_ANIMATIONS, {optional: true})?.animationsDisabled ||
+    inject(ANIMATION_MODULE_TYPE, {optional: true}) === 'NoopAnimations'
+  ) {
+    return true;
+  }
+  return inject(MediaMatcher).matchMedia('(prefers-reduced-motion)').matches;
+}
 
 // TODO(crisbeto): consolidate some logic between this, MatDialog and MatSnackBar
 
@@ -50,7 +82,6 @@ import { MatRightSheetConfig } from './right-sheet.config';
     changeDetection: ChangeDetectionStrategy.Default,
     // tslint:disable-next-line: use-view-encapsulation
     encapsulation: ViewEncapsulation.None,
-    animations: [matRightSheetAnimations.rightSheetState],
     // tslint:disable-next-line: use-host-property-decorator
     host: {
         class: 'mat-right-sheet-container',
@@ -58,9 +89,12 @@ import { MatRightSheetConfig } from './right-sheet.config';
         role: 'dialog',
         'aria-modal': 'true',
         '[attr.aria-label]': 'rightSheetConfig?.ariaLabel',
-        '[@state]': '_animationState',
-        '(@state.start)': '_onAnimationStart($event)',
-        '(@state.done)': '_onAnimationDone($event)',
+        '[class.mat-right-sheet-container-animations-enabled]': '!_animationsDisabled',
+        '[class.mat-right-sheet-container-enter]': '_animationState === "visible"',
+        '[class.mat-right-sheet-container-exit]': '_animationState === "hidden"',
+        '(animationstart)': '_handleAnimationEvent(true, $event.animationName, $event.target)',
+        '(animationend)': '_handleAnimationEvent(false, $event.animationName, $event.target)',
+        '(animationcancel)': '_handleAnimationEvent(false, $event.animationName, $event.target)',
     },
     standalone: false
 })
@@ -68,7 +102,10 @@ import { MatRightSheetConfig } from './right-sheet.config';
 export class MatRightSheetContainer extends BasePortalOutlet
   implements OnDestroy {
   /** Emits whenever the state of the animation changes. */
-  public _animationStateChanged = new EventEmitter<AnimationEvent>();
+  public _animationStateChanged = new EventEmitter<MatRightSheetAnimationEvent>();
+
+  /** Whether the enter/exit animations are skipped. */
+  public readonly _animationsDisabled = _rightSheetAnimationsDisabled();
 
   /** The state of the bottom sheet animations. */
   public _animationState: 'void' | 'visible' | 'hidden' = 'void';
@@ -152,7 +189,11 @@ export class MatRightSheetContainer extends BasePortalOutlet
   public enter(): void {
     if (!this._destroyed) {
       this._animationState = 'visible';
+      this._changeDetectorRef.markForCheck();
       this._changeDetectorRef.detectChanges();
+      if (this._animationsDisabled) {
+        this._simulateAnimation(ENTER_ANIMATION);
+      }
     }
   }
 
@@ -161,6 +202,9 @@ export class MatRightSheetContainer extends BasePortalOutlet
     if (!this._destroyed) {
       this._animationState = 'hidden';
       this._changeDetectorRef.markForCheck();
+      if (this._animationsDisabled) {
+        this._simulateAnimation(EXIT_ANIMATION);
+      }
     }
   }
 
@@ -169,18 +213,43 @@ export class MatRightSheetContainer extends BasePortalOutlet
     this._destroyed = true;
   }
 
-  public _onAnimationDone(event: AnimationEvent) {
-    if (event.toState === 'hidden') {
-      this._restoreFocus();
-    } else if (event.toState === 'visible') {
-      this._trapFocus();
+  /** Handles a CSS animation event dispatched on the container or one of its descendants. */
+  public _handleAnimationEvent(isStart: boolean, animationName: string, target: EventTarget | null) {
+    if (target !== this._elementRef.nativeElement) {
+      return;
     }
 
-    this._animationStateChanged.emit(event);
+    const isEnter = animationName === ENTER_ANIMATION;
+    const isExit = animationName === EXIT_ANIMATION;
+
+    if (!isEnter && !isExit) {
+      return;
+    }
+
+    const toState = isEnter ? 'visible' : 'hidden';
+
+    if (!isStart) {
+      if (isExit) {
+        this._restoreFocus();
+      } else {
+        this._trapFocus();
+      }
+    }
+
+    this._animationStateChanged.emit({toState, phase: isStart ? 'start' : 'done'});
   }
 
-  public _onAnimationStart(event: AnimationEvent) {
-    this._animationStateChanged.emit(event);
+  /**
+   * Emits the start and done events of an animation that is skipped. `done` is deferred to a
+   * microtask, the same timing the legacy `NoopAnimationsModule` engine had, so code (and tests)
+   * waiting on `afterOpened` / `afterDismissed` behave as before.
+   */
+  private _simulateAnimation(animationName: string) {
+    this._ngZone.run(() => {
+      const element = this._elementRef.nativeElement;
+      this._handleAnimationEvent(true, animationName, element);
+      Promise.resolve().then(() => this._handleAnimationEvent(false, animationName, element));
+    });
   }
 
   private _toggleClass(cssClass: string, add: boolean) {
