@@ -1,12 +1,13 @@
 import { Directionality } from '@angular/cdk/bidi';
 import { A, ESCAPE } from '@angular/cdk/keycodes';
+import { MediaMatcher } from '@angular/cdk/layout';
 import { OverlayContainer, ScrollStrategy } from '@angular/cdk/overlay';
 import { ViewportRuler } from '@angular/cdk/scrolling';
 import { Location } from '@angular/common';
 import { SpyLocation } from '@angular/common/testing';
 import { Component, Directive, Inject, Injector, NgModule, TemplateRef, ViewChild, ViewContainerRef, } from '@angular/core';
 import { ComponentFixture, fakeAsync, flush, flushMicrotasks, inject, TestBed, tick, } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { MAT_RIGHT_SHEET_DEFAULT_OPTIONS, MatRightSheet } from './right-sheet';
 import { MAT_RIGHT_SHEET_DATA, MatRightSheetConfig } from './right-sheet.config';
 import { MatRightSheetModule } from './right-sheet.module';
@@ -798,7 +799,7 @@ describe('MatRightSheet', () => {
         });
 
         viewContainerFixture.detectChanges();
-        flushMicrotasks();
+        flush();
 
         // tslint:disable-next-line: no-non-null-assertion
         expect(document.activeElement!.tagName).toBe(
@@ -916,7 +917,6 @@ describe('MatRightSheet with parent MatRightSheet', () => {
       imports: [
         MatRightSheetModule,
         RightSheetTestModule,
-        NoopAnimationsModule,
       ],
       declarations: [ComponentThatProvidesMatBottomSheet],
     }).compileComponents();
@@ -1136,17 +1136,115 @@ describe('MatRightSheet with default options', () => {
   }));
 });
 
+describe('MatRightSheet with animations enabled', () => {
+  let rightSheet: MatRightSheet;
+  let overlayContainer: OverlayContainer;
+  let overlayContainerElement: HTMLElement;
+  let viewContainerFixture: ComponentFixture<ComponentWithChildViewContainer>;
+  let testViewContainerRef: ViewContainerRef;
+
+  beforeEach(fakeAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [MatRightSheetModule, RightSheetTestModule],
+      providers: [
+        {provide: MATERIAL_ANIMATIONS, useValue: {animationsDisabled: false}},
+        // Keep the CSS animation path active even if the test browser prefers reduced motion.
+        {
+          provide: MediaMatcher,
+          useValue: {
+            matchMedia: (query: string) =>
+              query === '(prefers-reduced-motion)' ? {matches: false} : window.matchMedia(query),
+          },
+        },
+      ],
+    }).compileComponents();
+  }));
+
+  beforeEach(inject([MatRightSheet, OverlayContainer], (rs: MatRightSheet, oc: OverlayContainer) => {
+    rightSheet = rs;
+    overlayContainer = oc;
+    overlayContainerElement = oc.getContainerElement();
+  }));
+
+  afterEach(() => {
+    overlayContainer.ngOnDestroy();
+  });
+
+  beforeEach(() => {
+    viewContainerFixture = TestBed.createComponent(ComponentWithChildViewContainer);
+    viewContainerFixture.detectChanges();
+    testViewContainerRef = viewContainerFixture.componentInstance.childViewContainer;
+  });
+
+  function dispatchAnimationEvent(target: Element, type: string, animationName: string) {
+    target.dispatchEvent(new AnimationEvent(type, {animationName, bubbles: true}));
+  }
+
+  it('should toggle the enter and exit animation classes', fakeAsync(() => {
+    const rightSheetRef = rightSheet.open(PizzaMsg, {viewContainerRef: testViewContainerRef});
+    viewContainerFixture.detectChanges();
+
+    const container = overlayContainerElement.querySelector('mat-right-sheet-container')!;
+    expect(container.classList).toContain('mat-right-sheet-container-animations-enabled');
+    expect(container.classList).toContain('mat-right-sheet-container-enter');
+    expect(container.classList).not.toContain('mat-right-sheet-container-exit');
+
+    rightSheetRef.dismiss();
+    viewContainerFixture.detectChanges();
+
+    expect(container.classList).not.toContain('mat-right-sheet-container-enter');
+    expect(container.classList).toContain('mat-right-sheet-container-exit');
+  }));
+
+  it('should emit afterOpened and afterDismissed from the CSS animation events', fakeAsync(() => {
+    const rightSheetRef = rightSheet.open(PizzaMsg, {viewContainerRef: testViewContainerRef});
+    viewContainerFixture.detectChanges();
+
+    const container = overlayContainerElement.querySelector('mat-right-sheet-container')!;
+    const content = container.querySelector('p')!;
+    const openedSpy = jasmine.createSpy('afterOpened spy');
+    const dismissedSpy = jasmine.createSpy('afterDismissed spy');
+    rightSheetRef.afterOpened().subscribe(openedSpy);
+    rightSheetRef.afterDismissed().subscribe(dismissedSpy);
+
+    // Animations that bubble up from the sheet content must be ignored.
+    dispatchAnimationEvent(content, 'animationend', '_mat-right-sheet-enter');
+    flush();
+    expect(openedSpy).not.toHaveBeenCalled();
+
+    dispatchAnimationEvent(container, 'animationend', '_mat-right-sheet-enter');
+    flush();
+    expect(openedSpy).toHaveBeenCalledTimes(1);
+
+    rightSheetRef.dismiss();
+    viewContainerFixture.detectChanges();
+    dispatchAnimationEvent(container, 'animationstart', '_mat-right-sheet-exit');
+    flush();
+    expect(dismissedSpy).not.toHaveBeenCalled();
+    expect(overlayContainerElement.querySelector('.cdk-overlay-backdrop')).toBeNull();
+
+    dispatchAnimationEvent(container, 'animationend', '_mat-right-sheet-exit');
+    flush();
+    expect(dismissedSpy).toHaveBeenCalledTimes(1);
+    expect(overlayContainerElement.querySelector('mat-right-sheet-container')).toBeNull();
+  }));
+});
+
 /* tslint:disable */
-@Directive({selector: 'dir-with-view-container'})
+@Directive({
+    selector: 'dir-with-view-container',
+    standalone: false
+})
 class DirectiveWithViewContainer {
   constructor(public viewContainerRef: ViewContainerRef) {
   }
 }
 
 @Component({
-  template: `
+    template: `
         <dir-with-view-container></dir-with-view-container>
     `,
+    standalone: false
 })
 class ComponentWithChildViewContainer {
   @ViewChild(DirectiveWithViewContainer, {static: true})
@@ -1158,13 +1256,14 @@ class ComponentWithChildViewContainer {
 }
 
 @Component({
-  selector: 'arbitrary-component-with-template-ref',
-  template: `
+    selector: 'arbitrary-component-with-template-ref',
+    template: `
     <ng-template let-data let-rightSheetRef="rightSheetRef">
       Cheese {{ localValue }} {{ data?.value
       }}{{ setRef(rightSheetRef) }}</ng-template
     >
   `,
+    standalone: false
 })
 class ComponentWithTemplateRef {
   public localValue: string;
@@ -1178,7 +1277,10 @@ class ComponentWithTemplateRef {
   }
 }
 
-@Component({template: '<p>Pizza</p> <input> <button>Close</button>'})
+@Component({
+    template: '<p>Pizza</p> <input> <button>Close</button>',
+    standalone: false
+})
 class PizzaMsg {
   constructor(
     public rightSheetRef: MatRightSheetRef<PizzaMsg>,
@@ -1188,20 +1290,27 @@ class PizzaMsg {
   }
 }
 
-@Component({template: '<p>Taco</p>'})
+@Component({
+    template: '<p>Taco</p>',
+    standalone: false
+})
 class TacoMsg {
 }
 
 @Component({
-  template: '',
-  providers: [MatRightSheet],
+    template: '',
+    providers: [MatRightSheet],
+    standalone: false
 })
 class ComponentThatProvidesMatBottomSheet {
   constructor(public rightSheet: MatRightSheet) {
   }
 }
 
-@Component({template: ''})
+@Component({
+    template: '',
+    standalone: false
+})
 class RightSheetWithInjectedData {
   constructor(@Inject(MAT_RIGHT_SHEET_DATA) public data: any) {
   }
@@ -1219,16 +1328,10 @@ const TEST_DIRECTIVES = [
 ];
 
 @NgModule({
-  imports: [MatRightSheetModule, NoopAnimationsModule],
-  exports: TEST_DIRECTIVES,
-  declarations: TEST_DIRECTIVES,
-  entryComponents: [
-    ComponentWithChildViewContainer,
-    ComponentWithTemplateRef,
-    PizzaMsg,
-    TacoMsg,
-    RightSheetWithInjectedData,
-  ],
+    imports: [MatRightSheetModule],
+    providers: [{provide: MATERIAL_ANIMATIONS, useValue: {animationsDisabled: true}}],
+    exports: TEST_DIRECTIVES,
+    declarations: TEST_DIRECTIVES
 })
 class RightSheetTestModule {
 }

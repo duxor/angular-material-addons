@@ -1,15 +1,16 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
+    "strict": false,
     "outDir": "./dist/out-tsc",
+    "esModuleInterop": true,
     "sourceMap": true,
     "declaration": false,
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "es2015",
+    "target": "ES2022",
     "typeRoots": [
       "node_modules/@types"
     ],
@@ -18,12 +19,13 @@
       "dom"
     ],
     "paths": {
-      "right-sheet": [
-        "dist/right-sheet"
+      "@insightfulio/mat-right-sheet": [
+        "./dist/right-sheet"
       ],
-      "right-sheet/*": [
-        "dist/right-sheet/*"
+      "@insightfulio/mat-right-sheet/*": [
+        "./dist/right-sheet/*"
       ]
-    }
+    },
+    "useDefineForClassFields": false
   }
 }
