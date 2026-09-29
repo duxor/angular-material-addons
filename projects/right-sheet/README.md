@@ -1,6 +1,6 @@
 # RightSheet
 
-Run `npm i @insightfulio/mat-right-sheet` and add `MatRightSheetModule` to your modules. For further usage information see the official documentation for [BottomSheet](https://material.angular.io/components/component/bottom-sheet) and replace `BottomSheet` with `RightSheet`.
+Run `npm i @duxor/mat-right-sheet` and add `MatRightSheetModule` to your modules. For further usage information see the official documentation for [BottomSheet](https://material.angular.io/components/component/bottom-sheet) and replace `BottomSheet` with `RightSheet`.
 
 ## Animations
 
@@ -11,7 +11,7 @@ The sheet slides in and out with plain CSS animations, so it does not depend on 
 Include the theming in your stylesheets. For example:
 
 ```SCSS
-@use "@insightfulio/mat-right-sheet/right-sheet-theme" as mrs;
+@use "@duxor/mat-right-sheet/right-sheet-theme" as mrs;
 
 @include mrs.mat-right-sheet-theme($theme);
 
